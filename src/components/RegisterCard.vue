@@ -7,6 +7,7 @@
             <div class="fr-grid-row fr-grid-row-gutters fr-grid-row--center">
                 <div class="fr-col-12 fr-col-md-9 fr-col-lg-8">
                     <h1>Créer un compte (Re)Sources Relationnelles</h1>
+                    <h2>{{ this.displayh2 }}</h2>
                     <div>
                         <fieldset class="fr-fieldset" id="login-1760-fieldset" aria-labelledby="login-1760-fieldset-legend login-1760-fieldset-messages">
                             <legend class="fr-fieldset__legend" id="login-1760-fieldset-legend" v-if="display_error">
@@ -99,15 +100,17 @@
                             </div>
                         </fieldset>
                     </div>
-                    <hr>
-                    <h2>Vous avez déjà un compte ?</h2>
-                    <ul class="fr-btns-group">
-                        <li>
-                            <button class="fr-btn fr-btn--secondary" @click="this.goToLogin()">
-                                Se connecter
-                            </button>
-                        </li>
-                    </ul>
+                    <div v-if="this.citoyensCreation">
+                        <hr>
+                        <h2>Vous avez déjà un compte ?</h2>
+                        <ul class="fr-btns-group">
+                            <li>
+                                <button class="fr-btn fr-btn--secondary" @click="this.goToLogin()">
+                                    Se connecter
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,7 +129,7 @@
         import router from '@/router'
     
         export default{
-            name : "LoginCard",
+            name : "RegisterCard",
             data(){
                 return{
                     user:null,
@@ -139,15 +142,51 @@
 
                 }
             },
+            props:{
+                roleCreation:String
+            },
+            computed:{
+                adminCreation(){
+                    return this.roleCreation == "ADMIN"
+                },
+                moderateurCreation(){
+                    return this.roleCreation == "MODERATEUR"
+                },
+                superAdminCreation(){
+                    return this.roleCreation == "SUPER_ADMIN"
+                },
+                citoyensCreation(){
+                    return this.roleCreation == "CITIZEN"
+                },
+                displayh2(){
+                    if (this.roleCreation === "MODERATEUR") {
+                        return "Création d'un modérateur";
+                    } else if (this.roleCreation === "SUPER_ADMIN") {
+                        return "Création d'un super admin";
+                    } else if (this.roleCreation === "ADMIN") {
+                        return "Création d'un admin";
+                    } else {
+                        return "Création d'un citoyen";
+                    }
+                }
+            },
             methods:{
                 register(){
                     if(this.checkform()){
+                        let header = {
+                            "Content-Type": "application/json",
+                        }
+                        console.log(this.citoyensCreation)
+                        console.log(this.roleCreation)
+                        if(!this.citoyensCreation){
+                            header = {
+                                "Content-Type": "application/json",
+                                "Authorization": "Bearer " + store.state.token
+                            }
+                        }
                         const options = {
                             method: 'POST',
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            
+                            headers: header,
                             body: JSON.stringify({
                                 "adresseMail":this.user,
                                 "password":this.password,
@@ -156,20 +195,28 @@
                                 "cheminPhotoProfil": ""
                             })
                         };
-                        
-                        fetch(this.api_path + this.route_register, options)
+                        let routes = this.api_path + this.route_register
+                        if(this.moderateurCreation){
+                            routes = this.api_path + this.route_super_admin_register_moderateur
+                        }else if(this.adminCreation){
+                            routes = this.api_path + this.route_super_admin_register_admin
+                        }else if(this.superAdminCreation){
+                            routes = this.api_path + this.route_super_admin_register_super_admin
+                        }
+                        console.log(options)
+                        console.log(routes)
+                        fetch(routes, options)
                         .then(res =>{
-                            if(res.status != 201){
-                                sessionStorage.clear()
-                                store.state.email = null
-                                store.state.token = null
-                                this.display_error = true
-                            }else{
+
+                            if(res.status == 201){
                                 return res.json()
+                            }else{
+                                this.display_error = true
+                                throw new Error("Not created")
                             }
                         })
                         .then(data =>{
-                            if(data.success){
+                            if(this.citoyensCreation){
                                 // TODO: Rajouter également dans les cookies 
                                 // stockage dans le store vue
                                 store.state.token = data.token
@@ -178,7 +225,9 @@
                                 sessionStorage.setItem("token",data.token) 
                                 sessionStorage.setItem("email",data.username)
                                 store.commit("setConnectionStatus", true) 
-                                router.push("/home")
+                                router.push("/")
+                            }else{
+                                router.push("/super-admin")
                             }
                         }).catch(err=>{
                             console.log(err)
@@ -187,41 +236,49 @@
                 },
                 checkform(){
                     // TODO : check this.user format adresse mail
-                    if(this.user == null || this.user == ""){
+                    // Vérification du format de l'adresse e-mail
+                    let re = /^(([^<>()\\.,;:\s@"]+(\.[^<>()\\.,;:\s@"]+)*)|(".+"))@((\[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                    if(this.user == null || this.user == "" || !re.test(this.user.toLowerCase())){
                         this.display_error = true
-                        return false
-                    }
-                    if(this.password == "" || this.password == null){
-                        this.display_error = true
+                        console.log("test mail")
                         return false
                     }
                     if(this.password != this.password_validator){
+                        console.log("test mdp bis")
                         return false
                     }
                     if(this.nom == "" || this.nom == null){
+                        console.log("test nom")
                         return false
                     }
                     if(this.prenom == "" || this.prenom == null){
+                        console.log("test prenom")
                         return false
                     }
-                    return true
+                    if(this.password == "" || this.password == null){
+                        return false
+                    }
+                    if (this.password.match( /[0-9]/g) && this.password.match( /[A-Z]/g) && this.password.match(/[a-z]/g) && this.password.match( /[^a-zA-Z\d]/g) && this.password.length >= 6){
+                        return true
+                    } else {
+                        this.display_error = true
+                        console.log("test mdp")
+                        return false
+                    }
                 },
                 goToLogin(){
-                    router.push("/")
+                    router.push("/login")
                 }
-    
-    
             },
             mounted(){
                 // TODO: Rajouter la vérification dans les cookies
-                if(sessionStorage.getItem('token')){
-                    store.commit("setConnectionStatus", true)
-                    store.state.token = sessionStorage.getItem('token');
-                    store.state.email = sessionStorage.getItem('email');
-                    router.push("/home")
+                if(store.state.token == null || store.state.email == null || store.state.role == null ){
+                    if(sessionStorage.getItem('token') && sessionStorage.getItem('role') && sessionStorage.getItem('email')){
+                        store.state.token = sessionStorage.getItem('token');
+                        store.state.role = sessionStorage.getItem('role');
+                        store.state.email = sessionStorage.getItem('email');
+                    }
                 }
             }
-    
         }
-    
 </script>

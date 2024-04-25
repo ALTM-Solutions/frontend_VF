@@ -20,7 +20,7 @@
         </div>
         <div class="fr-grid-row fr-mb-3w">
             <div class="fr-col-12">
-                <button v-if="this.fileIsPresent" @click="downloadFile" class="fr-btn--icon-left fr-icon-file-download-fill color-blue-fr" :alt="this.ressourceFilename">Télécharger la ressource</button>
+                <a v-if="this.fileIsPresent" :href="this.reponse.pieceJointe.cheminPieceJointe" class="fr-btn--icon-left fr-icon-file-download-fill color-blue-fr">Télécharger la ressource</a>
             </div>
             
         </div>
@@ -50,7 +50,7 @@
 <script>
 // TODO : fix utilisateur not get correctly
     import store from "@/store"
-
+    // Permet de gérer le composant Vue
     export default{
         name : "ReponseView",
         props:{
@@ -59,7 +59,6 @@
         data(){
             return{
                 isRemoved:false,
-                emailConnected:null,
                 file:[],
                 showModalDelete:false,
                 user:this.reponse.utilisateur
@@ -67,7 +66,8 @@
         },
         computed:{
             isMyReponse(){
-                if(this.reponse.utilisateur.adresseMail == this.emailConnected){
+                console.log(store.state.email)
+                if(this.reponse.utilisateur.adresseMail == store.state.email || store.state.role == "MODERATEUR" || store.state.role == "ADMIN" || store.state.role == "SUPER_ADMIN"){
                     return true
                 }else{
                     return false
@@ -79,6 +79,9 @@
                 }else{
                     return false
                 }
+            },
+            userConnect(){
+                return store.state.isConnected
             }
         },
         methods:{
@@ -104,66 +107,15 @@
             },
             closeModalDelete() {
                 this.showModalDelete = false;
-            },
-            async downloadFile() {
-                let segments = this.reponse.pieceJointe.cheminPieceJointe.split("/")
-                let filename = segments[segments.length - 1]
-                let response = await fetch(this.reponse.pieceJointe.cheminPieceJointe, {
-                    headers: {
-                    'Authorization': `Bearer ${this.token}`
-                    }
-                });
-
-                if (response.status != 200) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                let blob = await response.blob();
-
-                let link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = filename;
-                link.click();
-
-                URL.revokeObjectURL(link.href);
             }
         },
         mounted(){
-            if(store.state.token == null){
-                if(sessionStorage.getItem('token')){
+            if(store.state.token == null || store.state.email == null || store.state.role == null){
+                if(sessionStorage.getItem('token') && sessionStorage.getItem('email') && sessionStorage.getItem('role')){
                     store.state.token = sessionStorage.getItem('token');
                     store.state.email = sessionStorage.getItem('email');
-                    this.emailConnected = store.state.email
-                    this.token = store.state.token                
-                }else{
-                    this.emailConnected = store.state.email
+                    store.state.role = sessionStorage.getItem('role');
                 }
-            }else{
-                store.state.email = sessionStorage.getItem('email');
-                this.token = store.state.token
-                this.emailConnected = store.state.email
-            }
-            const options = {
-                method: 'GET',
-                headers: {
-                    "Authorization": "Bearer " + store.state.token
-                }
-            };
-            if(this.user.cheminPhotoProfil != "" && this.user.cheminPhotoProfil!=null && this.user.cheminPhotoProfil != "null"){
-                fetch(this.user.cheminPhotoProfil ,options)
-                .then(res =>{
-                    if(res.status == 200){
-                        return res.blob();
-                    }else{
-                        throw new Error("not a image")
-                    }
-                })
-                .then(blob =>{
-                    // TODO : A OPTI pour conserver le blob de l'utilisateur une fois créer...
-                    this.user.cheminPhotoProfil =  URL.createObjectURL(blob)
-                }).catch(err=>{
-                    console.log(err)
-                })
             }
         }
 

@@ -11,8 +11,8 @@
                                     <fieldset class="fr-fieldset" id="login-1760-fieldset" aria-labelledby="login-1760-fieldset-legend login-1760-fieldset-messages">
                                         <legend class="fr-fieldset__legend" id="login-1760-fieldset-legend" v-if="this.show_error">
                                             <div class="fr-alert fr-alert--error">
-                                                <h3 class="fr-alert__title">Erreur : Erreur lors de l'edition</h3>
-                                                <p>Veuillez saisir des valeurs sur tous les champs ou réssayer plus tard...</p>
+                                                <h3 class="fr-alert__title">Erreur : Erreur lors de l'édition</h3>
+                                                <p>Veuillez saisir des valeurs sur tous les champs ou réessayer plus tard...</p>
                                             </div>
                                         </legend>
                                         <div class="fr-fieldset__element">

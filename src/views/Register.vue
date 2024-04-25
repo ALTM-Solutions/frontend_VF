@@ -1,6 +1,6 @@
 <template>
 
-    <RegisterCard></RegisterCard>
+    <RegisterCard roleCreation="CITIZEN"></RegisterCard>
     
 </template>
     

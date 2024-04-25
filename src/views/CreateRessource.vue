@@ -98,18 +98,18 @@
                     },
                     body:form
                 };
-                fetch(this.api_path + this.get_all_ressources,options)
+                fetch(this.api_path + this.route_ressources,options)
                 .then(res =>{
                     if(res.status == 201){
-                        router.push("/home")
+                        router.push("/")
                     }else if(res.status == 401){
                         sessionStorage.clear()
                         store.state.token = null
-                        store.state.username = null
+                        store.state.email = null
                         store.commit("setConnectionStatus",false)
                         document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
                         document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-                        router.push("/")
+                        router.push("/login")
                     }
                 }).catch(err=>{
                     console.log(err)
@@ -123,7 +123,7 @@
                 }else{
                     sessionStorage.clear()
                     store.state.token = null
-                    store.state.username = null
+                    store.state.email = null
                     store.commit("setConnectionStatus",false)
                     router.push("/")
                 }

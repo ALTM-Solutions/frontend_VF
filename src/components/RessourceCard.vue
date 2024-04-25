@@ -13,7 +13,7 @@
             </div>
         </div>
         <div v-if="this.itsMyRessource" class="fr-col-4" >
-            <button v-if="this.itsMyRessource" class="fr-btn fr-btn--icon-left fr-icon-delete-fill color-red-fr get-full-height" @click="this.showModal = true">Delete</button>
+            <button class="fr-btn fr-btn--icon-left fr-icon-delete-fill color-red-fr get-full-height" @click="this.showModal = true">Delete</button>
         </div>
     </div>
     <div v-if="showModal" class="modal">
@@ -74,12 +74,12 @@
                         "Authorization": "Bearer " + store.state.token
                     }
                 };
-                fetch(this.api_path + this.get_all_ressources + "/" + this.ressourceId,options)
+                fetch(this.api_path + this.route_ressources + "/" + this.ressourceId,options)
                 .then(res=>{
                     if(res.status == 401){
                         sessionStorage.clear()
                         store.state.token = null
-                        store.state.username = null
+                        store.state.email = null
                         store.commit("setConnectionStatus",false)
                         document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
                         document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
@@ -101,7 +101,7 @@
                 return "/ressource-view/" + this.ressourceId
             },
             itsMyRessource(){
-                if(this.utilisateur.adresseMail == this.emailConnected){
+                if(this.utilisateur.adresseMail == store.state.email || store.state.role == "MODERATEUR" || store.state.role == "ADMIN" || store.state.role == "SUPER_ADMIN"){
                     return true
                 }else{
                     return false
@@ -117,21 +117,13 @@
             }
         },
         mounted(){
-            if(store.state.token == null){
-                if(sessionStorage.getItem('token')){
+            if(store.state.token == null || store.state.email == null || store.state.role == null){
+                if(sessionStorage.getItem('token') && sessionStorage.getItem('email') && sessionStorage.getItem('role')){
                     store.state.token = sessionStorage.getItem('token');
                     store.state.email = sessionStorage.getItem('email');
-                    this.emailConnected = store.state.email
-                    this.token = store.state.token                
-                }else{
-                    this.emailConnected = store.state.email
+                    store.state.role = sessionStorage.getItem('role');
                 }
-            }else{
-                store.state.email = sessionStorage.getItem('email');
-                this.token = store.state.token
-                this.emailConnected = store.state.email
             }
-            console.log(this.emailConnected)
         }
 
     }

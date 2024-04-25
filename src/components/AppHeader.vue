@@ -17,7 +17,7 @@
                             </div>
                         </div>
                         <div class="fr-header__service">
-                            <a href="/home" title="Accueil - (Re)Source Relationnelles">
+                            <a href="/" title="Accueil - (Re)Source Relationnelles">
                                 <p class="fr-header__service-title">
                                     (Re)Sources Relationnelles
                                 </p>
@@ -48,9 +48,19 @@
                                         Edition profil
                                     </a>
                                 </li>
+                                <li v-if="this.isAdmin">
+                                    <a class="fr-btn fr-icon-user-search-fill" href="#" @click="this.goToAdminUser()">
+                                        Administration utilisateur
+                                    </a>
+                                </li>
+                                <li v-if="this.isSuperAdmin">
+                                    <a class="fr-btn fr-icon-information-fill" href="#" @click="this.goToSuperAdmin()">
+                                        Role Création
+                                    </a>
+                                </li>
                                 <li v-if="this.userConnect">
                                     <a class="fr-btn fr-icon-logout-box-r-fill" href="#" @click="this.unconnected()">
-                                        Se deconnecter
+                                        Se déconnecter
                                     </a>
                                 </li>
                             </ul>
@@ -97,8 +107,18 @@
                         </a>
                     </li>
                     <li v-if="this.userConnect" class="fr-nav__item">
+                        <a class="fr-nav__link fr-icon-user-search-fill color-blue-fr" href="#" @click="this.goToAdminUser()">
+                            Administration utilisateur
+                        </a>
+                    </li>
+                    <li v-if="this.userConnect" class="fr-nav__item">
+                        <a class="fr-nav__link fr-icon-information-fill color-blue-fr" href="#" @click="this.goToSuperAdmin()">
+                            Role Création
+                        </a>
+                    </li>
+                    <li v-if="this.userConnect" class="fr-nav__item">
                         <a class="fr-nav__link fr-icon-logout-box-r-fill color-blue-fr" href="#" @click="this.unconnected()">
-                            Se deconnecter
+                            Se déconnecter
                         </a>
                     </li>
                 </ul>
@@ -121,18 +141,28 @@ export default {
         }
     },
     methods:{
+        goToAdminUser(){
+            this.showMenu = false
+            router.push("/admin-user")
+        },
+        goToSuperAdmin(){
+            this.showMenu = false
+            router.push("/super-admin")
+        },
         gologin(){
             this.showMenu = false
-            router.push("/")
+            router.push("/login")
         },
         unconnected(){
             this.showMenu = false
             sessionStorage.clear()
             store.state.token = null
-            store.state.username = null
+            store.state.email = null
+            store.state.role = null
             store.commit("setConnectionStatus",false)
             document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
             document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+            document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
             router.push("/")
         },
         goToCreate(){
@@ -151,12 +181,28 @@ export default {
     computed:{
         userConnect(){
             return store.state.isConnected
+        },
+        isSuperAdmin(){
+            if(store.state.role == "SUPER_ADMIN"){
+                return true
+            }else{
+                return false
+            }
+        },
+        isAdmin(){
+            if(store.state.role == "SUPER_ADMIN" || store.state.role=="ADMIN"){
+                return true
+            }else{
+                return false
+            }
         }
     },
     mounted(){
-        if(store.state.token == null){
-            if(sessionStorage.getItem('token')){
+        if(store.state.token == null || store.state.email == null || store.state.role == null ){
+            if(sessionStorage.getItem('token') && sessionStorage.getItem('role') && sessionStorage.getItem('email')){
                 store.state.token = sessionStorage.getItem('token');
+                store.state.role = sessionStorage.getItem('role');
+                store.state.email = sessionStorage.getItem('email');
             }
         }
         this.token = store.state.token

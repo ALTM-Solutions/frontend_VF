@@ -21,6 +21,12 @@
                                 <p>Veuillez essayer ultérieurement...</p>
                             </div>
                         </legend>
+                        <legend class="fr-fieldset__legend" id="login-1760-fieldset-legend" v-if="display_error_inactif">
+                            <div class="fr-alert fr-alert--error">
+                                <h3 class="fr-alert__title">Erreur : Compte inactif</h3>
+                                <p>Votre compte a été désactivé...</p>
+                            </div>
+                        </legend>
                         <div class="fr-fieldset__element">
                             <fieldset class="fr-fieldset" id="credentials" aria-labelledby="credentials-messages">
                                 <div class="fr-fieldset__element">
@@ -120,7 +126,8 @@
                 display_error:false,
                 cookies_saver:false,
                 display_password:false,
-                display_error_server:false
+                display_error_server:false,
+                display_error_inactif:false
             }
         },
         methods:{
@@ -137,37 +144,52 @@
                     
                     fetch(this.api_path + this.route_login, options)
                     .then(res =>{
-                        if(res.status != 200){
-                            sessionStorage.clear()
-                            store.state.email = null
-                            store.state.token = null
-                            this.display_error = true
-                            this.display_error_server=false
-                        }else{
+                        if(res.status == 200 || res.status == 401){
                             return res.json()
+                        }else{
+                            this.display_error_inactif = false
+                            this.display_error = false
+                            this.display_error_server = true
+                            throw new Error("User disabled")
                         }
                     })
                     .then(data =>{
-                        if(data.success){
+                        if(data.success != null){
+                            console.log(data.success)
+                            if(data.message == "user disabled"){
+                                this.display_error_inactif = true
+                                this.display_error = false
+                                this.display_error_server = false
+                                throw new Error("User disabled")
+                            }else{
+                                this.display_error_inactif = false
+                                this.display_error = true
+                                this.display_error_server = false
+                            }
                            if(this.cookies_saver){
                                 let date = new Date()
                                 date.setTime(date.getTime() + this.expire_cookies);
                                 let expires = "expires=" + date.toUTCString();
                                 document.cookie = "token=" + data.token + ";" + expires + "; path=/";
                                 document.cookie = "email=" + data.details.username + ";" + expires + "; path=/";
+                                document.cookie = "role=" + data.details.role + ";" + expires + "; path=/";
                            }
                             // stockage dans le store vue
                             store.state.token = data.token
                             store.state.email = data.details.username
+                            store.state.role = data.details.role
                             // stockage dans le session storage
                             sessionStorage.setItem("token",data.token) 
                             sessionStorage.setItem("email",data.details.username)
+                            sessionStorage.setItem("role",data.details.role)
                             store.commit("setConnectionStatus", true) 
-                            router.push("/home")
+                            if(data.details.role === "SUPER_ADMIN"){
+                                router.push("/super-admin")
+                            }else{
+                                router.push("/")
+                            }
                         }
                     }).catch(err=>{
-                        this.display_error_server = true
-                        this.display_error=false
                         console.log(err)
                     })
                 }
@@ -191,11 +213,12 @@
         },
         mounted(){
             // TODO: Rajouter la vérification dans les cookies
-            if(sessionStorage.getItem('token')){
+            if(sessionStorage.getItem('token') && sessionStorage.getItem('email') && sessionStorage.getItem('role')){
                 store.commit("setConnectionStatus", true)
                 store.state.token = sessionStorage.getItem('token');
                 store.state.email = sessionStorage.getItem('email');
-                router.push("/home")
+                store.state.role = sessionStorage.getItem('role');
+                router.push("/")
             }else{
                 var allCookies = document.cookie;
 
@@ -218,10 +241,14 @@
                         store.state.email = cookieValue
                         sessionStorage.setItem("email",cookieValue)
                     }
+                    if(cookieName === "email"){
+                        store.state.role = cookieValue
+                        sessionStorage.setItem("role",cookieValue)
+                    }
                 }
                 if(cookieFound){
                     store.commit("setConnectionStatus", true)
-                    router.push("/home")
+                    router.push("/")
                 }
             }
             

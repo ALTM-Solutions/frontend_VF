@@ -12,7 +12,7 @@
                                     <legend class="fr-fieldset__legend" id="login-1760-fieldset-legend" v-if="this.show_error">
                                         <div class="fr-alert fr-alert--error">
                                             <h3 class="fr-alert__title">Erreur : Erreur lors de l'edition</h3>
-                                            <p>Veuillez saisir des valeurs sur tout les champs ou réssayer plus tard...</p>
+                                            <p>Veuillez saisir des valeurs sur tous les champs ou réssayer plus tard...</p>
                                         </div>
                                     </legend>
                                     <figure class="fr-content-media fr-content-media--sm" role="group" aria-label="photo de profil">
@@ -103,7 +103,7 @@
                     <span class="fr-icon-arrow-right-line fr-icon--lg"></span>
                     Êtes-vous sur de vouloir supprimer votre compte ?
                 </h1>
-                <p>La suppression de votre compte supprimera toutes vos ressource, commentaires, images, et réponse de façon définitive.</p>
+                <p>La suppression de votre compte supprimera toutes vos ressources, commentaires, images, et réponses de façon définitive.</p>
             </div>
             <div class="fr-modal__footer">
                 <div class="fr-btns-group fr-btns-group--right fr-btns-group--inline-reverse fr-btns-group--inline-lg fr-btns-group--icon-left">
@@ -164,7 +164,7 @@ export default {
             fetch(this.api_path + this.route_utilisateur + "/" + this.id ,options)
             .then(response=>{
                 if(response.status == 200){
-                    router.push("/home")
+                    router.push("/")
                 }
             })
             .catch(err=>{
@@ -186,7 +186,7 @@ export default {
                     // if okay 
                     sessionStorage.clear()
                     store.state.token = null
-                    store.state.username = null
+                    store.state.email = null
                     store.commit("setConnectionStatus",false)
                     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
                     document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
@@ -220,7 +220,7 @@ export default {
             if(response.status == 401){
                 sessionStorage.clear()
                 store.state.token = null
-                store.state.username = null
+                store.state.email = null
                 store.commit("setConnectionStatus",false)
                 router.push("/")
             }
@@ -234,27 +234,8 @@ export default {
             this.id = data.id
             this.email = data.adresseMail
             this.prenom = data.prenom
-            this.nom = data.nom        
-            if(data.cheminPhotoProfil != null && data.cheminPhotoProfil != ""){
-                let segments = data.cheminPhotoProfil.split(".")
-                let extension = segments[segments.length - 1];
-                if(extension == "webp"  ||extension == "jpg" || extension == "png" || extension == "jpeg"  || extension == "gif"){
-                    fetch(data.cheminPhotoProfil ,options)
-                    .then(res =>{
-                        if(res.status == 200){
-                            return res.blob();
-                        }else{
-                            this.imagePath = ""
-                        }
-                    })
-                    .then(blob =>{
-                        this.imagePath = URL.createObjectURL(blob)
-                    }).catch(err=>{
-                        this.imagePath=""
-                        console.log(err)
-                    })
-                }
-            }
+            this.nom = data.nom
+            this.imagePath = data.cheminPhotoProfil
         }).catch(erreur=>{
             console.log(erreur)
         })

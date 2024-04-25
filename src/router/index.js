@@ -7,17 +7,38 @@ import CreateRessource from '@/views/CreateRessource.vue'
 import RegisterView from '@/views/Register.vue'
 import ProfilePage from '@/views/ProfilePage.vue'
 import ChangePassword from '@/views/ChangePassword.vue'
+import SuperAdminPage from '@/views/SuperAdminPage.vue'
+import RegisterSuperAdmin from '@/views/RegisterSuperAdmin.vue'
+import AdminUser from '@/views/AdminUser.vue'
 
 const routes = [
     {
-      path: '/',
+      path: '/login',
       name: 'login',
       component: LoginPage
     },
     {
-      path: '/home',
+      path: '/',
       name: 'home',
       component: HomePage
+     
+    },
+    {
+      path: '/admin-user',
+      name: 'admin-user',
+      component: AdminUser
+     
+    },
+    {
+      path: '/super-admin',
+      name: 'super-admin',
+      component: SuperAdminPage
+     
+    },
+    {
+      path: '/register-admin/:role',
+      name: 'register-admin',
+      component: RegisterSuperAdmin
      
     },
     {

@@ -14,7 +14,6 @@
     
 <script>
 import store from '@/store'
-import router from '@/router'
 import RessourceCard from '@/components/RessourceCard.vue'
 
     export default {
@@ -22,53 +21,59 @@ import RessourceCard from '@/components/RessourceCard.vue'
         components: {RessourceCard},
         data(){
             return {
-                token: null,
                 all_ressource: []
             }
         },
         mounted(){
-            this.token = store.state.token
-            if(store.state.token == null){
-                if(sessionStorage.getItem('token')){
-                    store.state.token = sessionStorage.getItem('token');
-                    store.state.email = sessionStorage.getItem('email');
+            if(sessionStorage.getItem('token') && sessionStorage.getItem('email') && sessionStorage.getItem('role')){
+                store.commit("setConnectionStatus", true)
+                store.state.token = sessionStorage.getItem('token');
+                store.state.email = sessionStorage.getItem('email');
+                store.state.role = sessionStorage.getItem('role');
+            }else{
+                var allCookies = document.cookie;
+
+                // Diviser les cookies en un tableau
+                var cookiesArray = allCookies.split('; ');
+
+                // Parcourir le tableau pour trouver le cookie souhaité
+                var cookieFound = false
+                for(var i = 0; i < cookiesArray.length; i++) {
+                    var cookie = cookiesArray[i];
+                    var cookieName = cookie.split('=')[0];
+                    var cookieValue = cookie.split('=')[1];
+
+                    if(cookieName === 'token') {
+                        cookieFound = true
+                        store.state.token = cookieValue
+                        sessionStorage.setItem("token",cookieValue)
+                    }
+                    if(cookieName === "email"){
+                        store.state.email = cookieValue
+                        sessionStorage.setItem("email",cookieValue)
+                    }
+                    if(cookieName === "email"){
+                        store.state.role = cookieValue
+                        sessionStorage.setItem("role",cookieValue)
+                    }
+                }
+                if(cookieFound){
+                    store.commit("setConnectionStatus", true)
                 }
             }
-            if(this.token != null){
-                const options = {
-                    method: 'GET',
-                    headers: {
-                        "Authorization": "Bearer " + store.state.token
-                    }
-                };
-                fetch(this.api_path + this.get_all_ressources,options)
-                .then(res=>{
-                    if(res.status == 401){
-                        sessionStorage.clear()
-                        store.state.token = null
-                        store.state.username = null
-                        store.commit("setConnectionStatus",false)
-                        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-                        document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-                        router.push("/")
-                    }else if(res.status == 200){
-                        return res.json()
-                    }
-                }).then(data => {
-                    this.all_ressource = data
-                }).catch(err =>{
-                    console.log(err)
-                })
-            }else{
-                sessionStorage.clear()
-                store.state.token = null
-                store.state.username = null
-                store.commit("setConnectionStatus",false)
-                document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-                document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-                router.push("/")
-            }
-            
+            const options = {
+                method: 'GET'
+            };
+            fetch(this.api_path + this.get_all_ressources,options)
+            .then(res=>{
+               if(res.status == 200){
+                    return res.json()
+                }
+            }).then(data => {
+                this.all_ressource = data
+            }).catch(err =>{
+                console.log(err)
+            })
 
         }
     }

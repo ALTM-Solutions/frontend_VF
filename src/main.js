@@ -14,13 +14,25 @@ import router from './router'
 const app = createApp(App).use(store).use(router)
 
 app.config.globalProperties.api_path = "http://localhost:8080/"
-
-app.config.globalProperties.route_login = "api/v1/login"
-app.config.globalProperties.route_register = "api/v1/register"
+// PUBLIC
+app.config.globalProperties.route_login = "api/public/login"
+app.config.globalProperties.route_register = "api/public/register"
 app.config.globalProperties.get_all_ressources = "api/public/ressources"
-app.config.globalProperties.route_commentaire = "api/public/commentaire"
-app.config.globalProperties.route_utilisateur = "api/public/utilisateur"
-app.config.globalProperties.route_reponse = "api/public/reponse"
+// CITOYENS
+app.config.globalProperties.route_ressources = "api/citoyens/ressources"
+app.config.globalProperties.route_commentaire = "api/citoyens/commentaire"
+app.config.globalProperties.route_utilisateur = "api/citoyens/utilisateur"
+app.config.globalProperties.route_reponse = "api/citoyens/reponse"
+// SUPER ADMIN
+app.config.globalProperties.route_super_admin_get_all_user = "api/super-admin/all-user"
+app.config.globalProperties.route_super_admin_register_admin = "api/super-admin/register-admin"
+app.config.globalProperties.route_super_admin_register_super_admin = "api/super-admin/register-super-admin"
+app.config.globalProperties.route_super_admin_register_moderateur = "api/super-admin/register-moderateur"
+// ADMIN
+app.config.globalProperties.route_admin_disable = "api/admin/utilisateur/disable"
+app.config.globalProperties.route_admin_enable = "api/admin/utilisateur/enable"
+app.config.globalProperties.route_admin_get_all_user = "api/admin/utilisateur/all-user"
+
 
 app.config.globalProperties.expire_cookies = (7 * 24 * 60 * 60 * 1000)
 

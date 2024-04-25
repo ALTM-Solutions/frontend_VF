@@ -5,6 +5,7 @@ export default createStore({
     email:null,
     token:null,
     expire:null,
+    role:null,
     isConnected: false,
   },
   getters: {
