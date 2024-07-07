@@ -20,11 +20,11 @@
         }, 
         mounted(){
             this.roleCreation = this.$route.params.role
-            if(store.state.token == null || store.state.email == null || store.state.role == null ){
-                if(sessionStorage.getItem('token') && sessionStorage.getItem('role') && sessionStorage.getItem('email')){
+            if(store.state.token == null || store.state.id == null || store.state.role == null ){
+                if(sessionStorage.getItem('token') && sessionStorage.getItem('role') && sessionStorage.getItem('id')){
                     store.state.token = sessionStorage.getItem('token');
                     store.state.role = sessionStorage.getItem('role');
-                    store.state.email = sessionStorage.getItem('email');
+                    store.state.id = sessionStorage.getItem('id');
                 }
             }
         }

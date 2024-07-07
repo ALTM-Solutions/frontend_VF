@@ -2,6 +2,8 @@ import { createStore } from 'vuex'
 
 export default createStore({
   state: {
+    id:null,
+    password:null,
     email:null,
     token:null,
     expire:null,

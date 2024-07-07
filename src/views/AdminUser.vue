@@ -8,14 +8,13 @@
     </div>
     <div class="fr-table">
         <table>
-            <caption>Liste des utilisateur</caption>
+            <caption>Liste des utilisateurs</caption>
             <thead>
                 <tr>
                     <th scope="col">image</th>
                     <th scope="col">ID</th>
                     <th scope="col">Nom</th>
                     <th scope="col">Prénom</th>
-                    <th scope="col">Addresse Mail</th>
                     <th scope="col">Date de désactivation</th>
                     <th scope="col">Status</th>
                 </tr>
@@ -26,7 +25,6 @@
                                 :id="item.id"
                                 :nom="item.nom"
                                 :prenom="item.prenom"
-                                :adresseMail="item.adresseMail"
                                 :cheminPhotoProfil="item.cheminPhotoProfil"
                                 :dateDesactivation=item.dateDesactive
                                 ></AdminUserRow>
@@ -68,11 +66,11 @@
             }
         },
         mounted(){
-            if(store.state.token == null || store.state.email == null || store.state.role == null ){
-                if(sessionStorage.getItem('token') && sessionStorage.getItem('role') && sessionStorage.getItem('email')){
+            if(store.state.token == null || store.state.id == null || store.state.role == null ){
+                if(sessionStorage.getItem('token') && sessionStorage.getItem('role') && sessionStorage.getItem('id')){
                     store.state.token = sessionStorage.getItem('token');
                     store.state.role = sessionStorage.getItem('role');
-                    store.state.email = sessionStorage.getItem('email');
+                    store.state.id = sessionStorage.getItem('id');
                 }
             }
             if(store.state.role == "ADMIN" || store.state.role == "SUPER_ADMIN"){

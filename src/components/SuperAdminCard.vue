@@ -20,7 +20,6 @@
                     <th scope="col">ID</th>
                     <th scope="col">Nom</th>
                     <th scope="col">Prénom</th>
-                    <th scope="col">Addresse Mail</th>
                     <th scope="col">Date de désactivation</th>
                     <th scope="col">Rôle</th>
                     <th scope="col">Status</th>
@@ -32,7 +31,6 @@
                                 :id="item.id"
                                 :nom="item.nom"
                                 :prenom="item.prenom"
-                                :adresseMail="item.adresseMail"
                                 :cheminPhotoProfil="item.cheminPhotoProfil"
                                 :dateDesactivation=item.dateDesactive
                                 :role="item.role.nom"
@@ -67,11 +65,11 @@
             }
         },
         mounted(){
-            if(store.state.token == null || store.state.email == null || store.state.role == null){
-                if(sessionStorage.getItem('token') || sessionStorage.getItem("email") || sessionStorage.getItem("role")){
+            if(store.state.token == null || store.state.id == null || store.state.role == null){
+                if(sessionStorage.getItem('token') || sessionStorage.getItem("id") || sessionStorage.getItem("role")){
                     store.commit("setConnectionStatus", true)
                     store.state.token = sessionStorage.getItem('token');
-                    store.state.email = sessionStorage.getItem('email');
+                    store.state.id = sessionStorage.getItem('id');
                     store.state.role = sessionStorage.getItem('role');
                 }else{
                     router.push("/")

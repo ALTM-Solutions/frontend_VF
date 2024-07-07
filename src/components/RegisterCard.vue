@@ -52,7 +52,7 @@
                                     <div class="fr-fieldset__element">
                                         <div class="fr-password" id="password-1758">
                                             <label class="fr-label" for="password-1758-input">
-                                                Mot de passe
+                                                Mot de passe <spans style="font-style: italic; font-size: 0.6rem;">(8 caractères, majuscule, miniscule, caractère spéciaux et chiffre)</spans>
                                             </label>
                                             <div class="fr-input-wrap">
                                                 <input v-if="!this.showPassword" class="fr-password__input fr-input" aria-describedby="password-1758-input-messages" aria-required="true" name="password" autocomplete="current-password" id="password-1758-input" type="password" v-model="password" @keypress.enter="this.register()">
@@ -176,8 +176,6 @@
                         let header = {
                             "Content-Type": "application/json",
                         }
-                        console.log(this.citoyensCreation)
-                        console.log(this.roleCreation)
                         if(!this.citoyensCreation){
                             header = {
                                 "Content-Type": "application/json",
@@ -203,33 +201,25 @@
                         }else if(this.superAdminCreation){
                             routes = this.api_path + this.route_super_admin_register_super_admin
                         }
-                        console.log(options)
-                        console.log(routes)
                         fetch(routes, options)
                         .then(res =>{
 
                             if(res.status == 201){
-                                return res.json()
+                                if(this.citoyensCreation){
+                                    store.state.email = this.user
+                                    store.state.password = this.password
+                                    sessionStorage.setItem("email",this.user)
+
+                                    router.push("/validate-create")
+                                }else{
+                                    router.push("/super-admin")
+                                }
                             }else{
                                 this.display_error = true
                                 throw new Error("Not created")
                             }
                         })
-                        .then(data =>{
-                            if(this.citoyensCreation){
-                                // TODO: Rajouter également dans les cookies 
-                                // stockage dans le store vue
-                                store.state.token = data.token
-                                store.state.email = data.username
-                                // stockage dans le session storage
-                                sessionStorage.setItem("token",data.token) 
-                                sessionStorage.setItem("email",data.username)
-                                store.commit("setConnectionStatus", true) 
-                                router.push("/")
-                            }else{
-                                router.push("/super-admin")
-                            }
-                        }).catch(err=>{
+                        .catch(err=>{
                             console.log(err)
                         })
                     }
@@ -240,29 +230,24 @@
                     let re = /^(([^<>()\\.,;:\s@"]+(\.[^<>()\\.,;:\s@"]+)*)|(".+"))@((\[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
                     if(this.user == null || this.user == "" || !re.test(this.user.toLowerCase())){
                         this.display_error = true
-                        console.log("test mail")
                         return false
                     }
                     if(this.password != this.password_validator){
-                        console.log("test mdp bis")
                         return false
                     }
                     if(this.nom == "" || this.nom == null){
-                        console.log("test nom")
                         return false
                     }
                     if(this.prenom == "" || this.prenom == null){
-                        console.log("test prenom")
                         return false
                     }
                     if(this.password == "" || this.password == null){
                         return false
                     }
-                    if (this.password.match( /[0-9]/g) && this.password.match( /[A-Z]/g) && this.password.match(/[a-z]/g) && this.password.match( /[^a-zA-Z\d]/g) && this.password.length >= 6){
+                    if (this.password.match( /[0-9]/g) && this.password.match( /[A-Z]/g) && this.password.match(/[a-z]/g) && this.password.match( /[^a-zA-Z\d]/g) && this.password.length >= 8){
                         return true
                     } else {
                         this.display_error = true
-                        console.log("test mdp")
                         return false
                     }
                 },
@@ -272,11 +257,11 @@
             },
             mounted(){
                 // TODO: Rajouter la vérification dans les cookies
-                if(store.state.token == null || store.state.email == null || store.state.role == null ){
-                    if(sessionStorage.getItem('token') && sessionStorage.getItem('role') && sessionStorage.getItem('email')){
+                if(store.state.token == null || store.state.role == null || store.state.id == null ){
+                    if(sessionStorage.getItem('token') && sessionStorage.getItem('role') &&  sessionStorage.getItem('id')){
                         store.state.token = sessionStorage.getItem('token');
                         store.state.role = sessionStorage.getItem('role');
-                        store.state.email = sessionStorage.getItem('email');
+                        store.state.id = sessionStorage.getItem('id');
                     }
                 }
             }

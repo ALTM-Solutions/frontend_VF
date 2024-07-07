@@ -10,6 +10,11 @@ import ChangePassword from '@/views/ChangePassword.vue'
 import SuperAdminPage from '@/views/SuperAdminPage.vue'
 import RegisterSuperAdmin from '@/views/RegisterSuperAdmin.vue'
 import AdminUser from '@/views/AdminUser.vue'
+import ValidateCreate from '@/views/ValidateCreate.vue'
+import ManageCollection from '@/views/ManageCollection.vue'
+import ValidationRessource from '@/views/ValidationRessource.vue'
+import EditionRessource from '@/views/EditionRessource.vue'
+import ModerateurView from '@/views/ModerateurView.vue'
 
 const routes = [
     {
@@ -28,6 +33,26 @@ const routes = [
       name: 'admin-user',
       component: AdminUser
      
+    },
+    {
+      path: '/manage-collection', // '/manage-collection'
+      name: 'manage-collection',
+      component: ManageCollection
+    },
+    {
+      path: '/validate-ressource',
+      name: 'validate-ressource',
+      component: ValidationRessource
+    },
+    {
+      path: '/moderateur-view-ressource/:id',
+      name: 'moderateur-view-ressource',
+      component: ModerateurView
+    },
+    {
+      path: '/edit-ressource/:id',
+      name: 'edit-ressource',
+      component: EditionRessource
     },
     {
       path: '/super-admin',
@@ -55,6 +80,12 @@ const routes = [
       path: '/register',
       name: 'register',
       component: RegisterView
+    },
+    {
+      path: '/validate-create',
+      name: 'validate-create',
+      component: ValidateCreate
+     
     },
     {
       path: '/profil-page',

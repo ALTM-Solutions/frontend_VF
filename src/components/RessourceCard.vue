@@ -5,9 +5,14 @@
                 <div class="fr-card__body">
                     <div class="fr-card__content">
                         <h3 class="fr-card__title">
-                            <a :href="this.pathRessourceView">{{ this.titre }}</a>
+                            
+                            <a :href="this.pathRessourceView">{{ this.truncatedTitre}}</a>
                         </h3>
-                        <p class="fr-card__desc"> <span class="fr-quote__author">[{{ this.utilisateur.nom }} - {{ this.utilisateur.prenom }}]</span> - {{ this.truncatedText }}</p>
+                        
+                        <p class="fr-card__desc">{{ this.truncatedText }} <br><span v-for="(item, index) in this.collections" :key="index" class="fr-badge fr-badge--info fr-badge--no-icon fr-badge--sm">
+                            {{ item.nom }}
+                        </span> </p>
+                        
                     </div>
                 </div>
             </div>
@@ -51,7 +56,8 @@
             titre : String,
             datePublication : String,
             ressourceId: Number,
-            utilisateur: Object
+            utilisateur: Object,
+            collections: Object
         },
         data(){
             return{
@@ -77,12 +83,6 @@
                 fetch(this.api_path + this.route_ressources + "/" + this.ressourceId,options)
                 .then(res=>{
                     if(res.status == 401){
-                        sessionStorage.clear()
-                        store.state.token = null
-                        store.state.email = null
-                        store.commit("setConnectionStatus",false)
-                        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-                        document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
                         router.push("/")
                     }else if(res.status == 200){
                         this.isRemoved = true
@@ -101,7 +101,7 @@
                 return "/ressource-view/" + this.ressourceId
             },
             itsMyRessource(){
-                if(this.utilisateur.adresseMail == store.state.email || store.state.role == "MODERATEUR" || store.state.role == "ADMIN" || store.state.role == "SUPER_ADMIN"){
+                if(this.utilisateur.id == store.state.id || store.state.role == "MODERATEUR" || store.state.role == "ADMIN" || store.state.role == "SUPER_ADMIN"){
                     return true
                 }else{
                     return false
@@ -114,14 +114,22 @@
                 }else{
                     return this.text
                 }
+            },
+            truncatedTitre(){
+                var max_size = 25
+                if(this.titre.length >= max_size){
+                    return this.titre.substring(0,max_size) + "..."
+                }else{
+                    return this.titre
+                }
             }
         },
         mounted(){
-            if(store.state.token == null || store.state.email == null || store.state.role == null){
-                if(sessionStorage.getItem('token') && sessionStorage.getItem('email') && sessionStorage.getItem('role')){
+            if(store.state.token == null || store.state.role == null || store.state.id == null){
+                if(sessionStorage.getItem('token') &&  sessionStorage.getItem('role')&& sessionStorage.getItem('id')){
                     store.state.token = sessionStorage.getItem('token');
-                    store.state.email = sessionStorage.getItem('email');
                     store.state.role = sessionStorage.getItem('role');
+                    store.state.id = sessionStorage.getItem('id');
                 }
             }
         }

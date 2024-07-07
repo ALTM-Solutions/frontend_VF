@@ -30,7 +30,7 @@
                             <ul class="fr-btns-group">
                                 <li v-if="this.userConnect">
                                     <a class="fr-btn fr-icon-add-circle-line" href="#" @click="this.goToCreate()">
-                                        Ajouter une ressource
+                                        Ressource
                                     </a>
                                 </li>
                                 <li v-if="!this.userConnect">
@@ -45,12 +45,17 @@
                                 </li>
                                 <li v-if="this.userConnect">
                                     <a class="fr-btn fr-icon-edit-box-fill" href="#" @click="this.gotoProfilePage()">
-                                        Edition profil
+                                        Profil
                                     </a>
                                 </li>
                                 <li v-if="this.isAdmin">
                                     <a class="fr-btn fr-icon-user-search-fill" href="#" @click="this.goToAdminUser()">
-                                        Administration utilisateur
+                                        Utilisateur
+                                    </a>
+                                </li>
+                                <li v-if="this.isModerateur">
+                                    <a class="fr-btn fr-icon-shield-fill" href="#" @click="this.goToManageRessource()">
+                                        Moderation
                                     </a>
                                 </li>
                                 <li v-if="this.isSuperAdmin">
@@ -58,11 +63,17 @@
                                         Role Création
                                     </a>
                                 </li>
+                                <li v-if="this.isAdmin">
+                                    <a class="fr-btn fr-icon-bookmark-fill" href="#" @click="this.goToCollection()">
+                                        Collections
+                                    </a>
+                                </li>
                                 <li v-if="this.userConnect">
                                     <a class="fr-btn fr-icon-logout-box-r-fill" href="#" @click="this.unconnected()">
                                         Se déconnecter
                                     </a>
                                 </li>
+                                
                             </ul>
                         </div>
                     </div>
@@ -88,7 +99,7 @@
                 <ul class="fr-nav__list">
                     <li v-if="this.userConnect" class="fr-nav__item">
                         <a class="fr-nav__link fr-icon-add-circle-line color-blue-fr" href="#" @click="this.goToCreate()">
-                            Ajouter une ressource
+                            Ressource
                         </a>
                     </li>
                     <li v-if="!this.userConnect" class="fr-nav__item">
@@ -103,17 +114,27 @@
                     </li>
                     <li v-if="this.userConnect" class="fr-nav__item">
                         <a class="fr-nav__link fr-icon-edit-box-fill color-blue-fr" href="#" @click="this.gotoProfilePage()">
-                            Edition profil
+                            Profil
                         </a>
                     </li>
-                    <li v-if="this.userConnect" class="fr-nav__item">
+                    <li v-if="this.isAdmin" class="fr-nav__item">
                         <a class="fr-nav__link fr-icon-user-search-fill color-blue-fr" href="#" @click="this.goToAdminUser()">
-                            Administration utilisateur
+                            Utilisateur
                         </a>
                     </li>
-                    <li v-if="this.userConnect" class="fr-nav__item">
+                    <li v-if="this.isModerateur" class="fr-nav__item">
+                        <a class="fr-nav__link fr-icon-shield-fill color-blue-fr" href="#" @click="this.goToManageRessource()">
+                            Moderation
+                        </a>
+                    </li>
+                    <li v-if="this.isSuperAdmin" class="fr-nav__item">
                         <a class="fr-nav__link fr-icon-information-fill color-blue-fr" href="#" @click="this.goToSuperAdmin()">
                             Role Création
+                        </a>
+                    </li>
+                    <li v-if="this.isAdmin" class="fr-nav__item">
+                        <a class="fr-nav__link fr-icon-bookmark-fill color-blue-fr" href="#" @click="this.goToCollection()">
+                            Collection
                         </a>
                     </li>
                     <li v-if="this.userConnect" class="fr-nav__item">
@@ -159,10 +180,12 @@ export default {
             store.state.token = null
             store.state.email = null
             store.state.role = null
+            store.state.id = null
             store.commit("setConnectionStatus",false)
             document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
             document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
             document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+            document.cookie = "id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
             router.push("/")
         },
         goToCreate(){
@@ -176,6 +199,14 @@ export default {
         gotoProfilePage(){
             this.showMenu = false
             router.push("/profil-page")
+        },
+        goToCollection(){
+            this.showMenu=false
+            router.push("/manage-collection")
+        },
+        goToManageRessource(){
+            this.showMenu=false
+            router.push("/validate-ressource")
         }
     },
     computed:{
@@ -195,14 +226,21 @@ export default {
             }else{
                 return false
             }
+        },
+        isModerateur(){
+            if(store.state.role == "SUPER_ADMIN" || store.state.role=="ADMIN" || store.state.role == "MODERATEUR"){
+                return true
+            }else{
+                return false
+            }
         }
     },
     mounted(){
-        if(store.state.token == null || store.state.email == null || store.state.role == null ){
-            if(sessionStorage.getItem('token') && sessionStorage.getItem('role') && sessionStorage.getItem('email')){
+        if(store.state.token == null || store.state.id == null || store.state.role == null ){
+            if(sessionStorage.getItem('token') && sessionStorage.getItem('role') && sessionStorage.getItem('id')){
                 store.state.token = sessionStorage.getItem('token');
                 store.state.role = sessionStorage.getItem('role');
-                store.state.email = sessionStorage.getItem('email');
+                store.state.id = sessionStorage.getItem('id');
             }
         }
         this.token = store.state.token

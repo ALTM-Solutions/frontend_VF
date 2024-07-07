@@ -25,17 +25,6 @@
                                             <div class="fr-fieldset__element">
                                                 <div class="fr-input-group">
                                                     <label class="fr-label" for="username-1757">
-                                                        Identifiant
-                                                        <span class="fr-hint-text">Format attendu : nom@domaine.fr</span>
-                                                    </label>
-                                                    <input class="fr-input" autocomplete="username" aria-required="true" aria-describedby="username-1757-messages" name="username" id="username-1757" type="text" v-model="this.email" @keypress.enter="this.edit()">
-                                                    <div class="fr-messages-group" id="username-1757-messages" aria-live="assertive">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="fr-fieldset__element">
-                                                <div class="fr-input-group">
-                                                    <label class="fr-label" for="username-1757">
                                                         Nom
                                                     </label>
                                                     <input class="fr-input" autocomplete="username" aria-required="true" aria-describedby="username-1757-messages" name="username" id="username-1757" type="text" v-model="this.nom" @keypress.enter="this.edit()">
@@ -126,7 +115,6 @@ export default {
             id:null,
             nom:null,
             prenom:null,
-            email:null,
             imagePath:null,
             file:[],
             show_error:false,
@@ -145,7 +133,6 @@ export default {
 
             form.append("nom",this.nom)
             form.append("prenom",this.prenom)
-            form.append("adresseMail",this.email)
 
             if(this.file.length != 0){
                 form.append("file",this.file)
@@ -187,8 +174,12 @@ export default {
                     sessionStorage.clear()
                     store.state.token = null
                     store.state.email = null
+                    store.state.id = null
+                    store.state.role = null
                     store.commit("setConnectionStatus",false)
                     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+                    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+                    document.cookie = "id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
                     document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
                     router.push("/")
                 }else{
@@ -218,10 +209,6 @@ export default {
         fetch(this.api_path + this.route_utilisateur,options)
         .then(response=>{
             if(response.status == 401){
-                sessionStorage.clear()
-                store.state.token = null
-                store.state.email = null
-                store.commit("setConnectionStatus",false)
                 router.push("/")
             }
             if (!response.ok) {
@@ -232,10 +219,9 @@ export default {
 
         }).then(data=>{
             this.id = data.id
-            this.email = data.adresseMail
             this.prenom = data.prenom
             this.nom = data.nom
-            this.imagePath = data.cheminPhotoProfil
+            this.imagePath = this.api_path + this.get_file + "/" + data.cheminPhotoProfil
         }).catch(erreur=>{
             console.log(erreur)
         })

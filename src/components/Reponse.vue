@@ -2,7 +2,7 @@
     <div v-if="!this.isRemoved" class="reponse-block">
         <div class="fr-grid-row fr-mb-3w remove-bottom-margin">
             <div class="fr-col-1">
-                <img class="profil-picture" :src="this.user.cheminPhotoProfil" alt="photo de profil">
+                <img class="profil-picture" :src="this.urlProfilPicture" alt="photo de profil">
             </div>
             <div class="fr-col-11">
                 <span class="fr-quote__author">[{{ this.user.nom }} {{  this.user.prenom }}]</span>
@@ -20,9 +20,8 @@
         </div>
         <div class="fr-grid-row fr-mb-3w">
             <div class="fr-col-12">
-                <a v-if="this.fileIsPresent" :href="this.reponse.pieceJointe.cheminPieceJointe" class="fr-btn--icon-left fr-icon-file-download-fill color-blue-fr">Télécharger la ressource</a>
+                <a v-if="this.fileIsPresent" :href="this.urlFile" class="fr-btn--icon-left fr-icon-file-download-fill color-blue-fr">Télécharger la ressource</a>
             </div>
-            
         </div>
     </div>
     <div v-if="showModalDelete" class="modal">
@@ -67,10 +66,20 @@
         computed:{
             isMyReponse(){
                 console.log(store.state.email)
-                if(this.reponse.utilisateur.adresseMail == store.state.email || store.state.role == "MODERATEUR" || store.state.role == "ADMIN" || store.state.role == "SUPER_ADMIN"){
+                if(this.reponse.utilisateur.id == store.state.id || store.state.role == "MODERATEUR" || store.state.role == "ADMIN" || store.state.role == "SUPER_ADMIN"){
                     return true
                 }else{
                     return false
+                }
+            },
+            urlFile(){
+                return this.api_path + this.get_file + "/" + this.reponse.pieceJointe.cheminPieceJointe
+            },
+            urlProfilPicture(){
+                if(this.cheminPhotoProfil != ""){
+                    return this.api_path + this.get_file + "/" + this.user.cheminPhotoProfil
+                }else{
+                    return ""
                 }
             },
             fileIsPresent(){
@@ -110,10 +119,10 @@
             }
         },
         mounted(){
-            if(store.state.token == null || store.state.email == null || store.state.role == null){
-                if(sessionStorage.getItem('token') && sessionStorage.getItem('email') && sessionStorage.getItem('role')){
+            if(store.state.token == null || store.state.id == null || store.state.role == null){
+                if(sessionStorage.getItem('token') && sessionStorage.getItem('id') && sessionStorage.getItem('role')){
                     store.state.token = sessionStorage.getItem('token');
-                    store.state.email = sessionStorage.getItem('email');
+                    store.state.id = sessionStorage.getItem('id');
                     store.state.role = sessionStorage.getItem('role');
                 }
             }

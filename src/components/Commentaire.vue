@@ -3,7 +3,7 @@
         
         <div class="fr-grid-row fr-mb-3w remove-bottom-margin">
             <div class="fr-col-1">
-                <img class="profil-picture" :src="this.user.cheminPhotoProfil" alt="photo de profil">
+                <img class="profil-picture" :src="this.urlProfilPicture" alt="photo de profil">
             </div>
             <div class="fr-col-11">
                 <span class="fr-quote__author">[{{ this.user.nom }} {{  this.user.prenom }}]</span>
@@ -24,7 +24,7 @@
                 <button class="fr-btn--icon-left fr-icon-add-circle-fill color-blue-fr" @click="this.showModal = true">Ajouter une réponse</button>
             </div>
             <div class="fr-col-6">
-                <a v-if="this.fileIsPresent" :href="this.commentaire.pieceJointe.cheminPieceJointe" class="fr-btn--icon-left fr-icon-file-download-fill color-blue-fr" :alt="this.ressourceFilename">Télécharger la ressource</a>
+                <a v-if="this.fileIsPresent" :href="this.urlFile" class="fr-btn--icon-left fr-icon-file-download-fill color-blue-fr" :alt="this.ressourceFilename">Télécharger la ressource</a>
             </div>
             
         </div>
@@ -108,7 +108,7 @@
         // Variables calculées => 
         computed:{
             isMyComment(){
-                if(this.commentaire.utilisateur.adresseMail == store.state.email || store.state.role == "MODERATEUR" || store.state.role == "ADMIN" || store.state.role == "SUPER_ADMIN"){
+                if(this.commentaire.utilisateur.id == store.state.id || store.state.role == "MODERATEUR" || store.state.role == "ADMIN" || store.state.role == "SUPER_ADMIN"){
                     return true
                 }else{
                     return false
@@ -121,6 +121,9 @@
                     return true
                 }
             },
+            urlFile(){
+                return this.api_path + this.get_file + "/" + this.commentaire.pieceJointe.cheminPieceJointe
+            },
             fileIsPresent(){
                 if(this.commentaire.pieceJointe != null && this.commentaire.pieceJointe != "null"){
                     return true
@@ -129,10 +132,11 @@
                 }
             },
             ressourceFilename(){
-                if(this.commentaire.pieceJointe != null && this.commentaire.pieceJointe != "null"){
-                    let segments = this.commentaire.pieceJointe.cheminPieceJointe.split("/")
-                    let filename = segments[segments.length - 1]
-                    return filename
+                return this.commentaire.pieceJointe.nomOrigin
+            },
+            urlProfilPicture(){
+                if(this.cheminPhotoProfil != ""){
+                    return this.api_path + this.get_file + "/" + this.user.cheminPhotoProfil
                 }else{
                     return ""
                 }
@@ -216,10 +220,10 @@
         },
         // Ce qu'il se passe au moment de la création du DOM
         mounted(){
-            if(store.state.token == null || store.state.email == null || store.state.role == null){
-                if(sessionStorage.getItem('token') && sessionStorage.getItem('email') && sessionStorage.getItem('role')){
+            if(store.state.token == null || store.state.id == null || store.state.role == null){
+                if(sessionStorage.getItem('token') && sessionStorage.getItem('id') && sessionStorage.getItem('role')){
                     store.state.token = sessionStorage.getItem('token');
-                    store.state.email = sessionStorage.getItem('email');
+                    store.state.id = sessionStorage.getItem('id');
                     store.state.role = sessionStorage.getItem('role');
                 }
             }

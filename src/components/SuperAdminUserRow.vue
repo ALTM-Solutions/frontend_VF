@@ -1,9 +1,8 @@
 <template>
-    <td><img v-if='this.cheminPhotoProfil != ""' class="profil-picture" :src="this.cheminPhotoProfil" alt="photo de profil"></td>
+    <td><img v-if='this.cheminPhotoProfil != ""' class="profil-picture" :src="this.urlImage" alt="photo de profil"></td>
     <td>[{{ this.id }}]</td> 
     <td>{{ this.nom }}</td>
     <td>{{ this.prenom }}</td> 
-    <td>{{ this.adresseMail }}</td> 
     <td>{{ this.dateDesactivation }}</td>
     <td>{{ this.role }}</td>
     <td>{{ this.status }}</td>
@@ -23,7 +22,6 @@
                 id:Number,
                 nom: String,
                 prenom : String,
-                adresseMail: String,
                 cheminPhotoProfil:String,
                 dateDesactivation:String,
                 role:String
@@ -37,14 +35,17 @@
                     }else{
                         return "INACTIF"
                     }
+                },
+                urlImage(){
+                    return this.api_path + this.get_file + "/" + this.cheminPhotoProfil
                 }
             },
             mounted(){
-                if(store.state.token == null || store.state.email == null || store.state.role == null){
-                    if(sessionStorage.getItem('token') || sessionStorage.getItem("email") || sessionStorage.getItem("role")){
+                if(store.state.token == null || store.state.id == null || store.state.role == null){
+                    if(sessionStorage.getItem('token') || sessionStorage.getItem("id") || sessionStorage.getItem("role")){
                         store.commit("setConnectionStatus", true)
                         store.state.token = sessionStorage.getItem('token');
-                        store.state.email = sessionStorage.getItem('email');
+                        store.state.id = sessionStorage.getItem('id');
                         store.state.role = sessionStorage.getItem('role');
                     }else{
                         router.push("/")

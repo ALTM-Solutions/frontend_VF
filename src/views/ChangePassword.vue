@@ -61,7 +61,7 @@
                                                             Validation du nouveau mot de passe
                                                         </label>
                                                         <div class="fr-input-wrap">
-                                                            <input class="fr-password__input fr-input" aria-describedby="password-validator-1758-input-messages" aria-required="true" name="password" autocomplete="password-validator" id="password-validator-1758-input" type="password" v-model="validationPassword"  @keypress.enter="this.register()">
+                                                            <input class="fr-password__input fr-input" aria-describedby="password-validator-1758-input-messages" aria-required="true" name="password" autocomplete="password-validator" id="password-validator-1758-input" type="password" v-model="validationPassword"  @keypress.enter="this.changePassword()">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -150,7 +150,7 @@
                     fetch(this.api_path + this.route_utilisateur + "/update-password" ,options)
                     .then(response=>{
                         if(response.status == 200){
-                            router.push("/home")
+                            router.push("/")
                         }
                     })
                     .catch(err=>{
@@ -165,12 +165,6 @@
             if(store.state.token == null){
                 if(sessionStorage.getItem('token')){
                     store.state.token = sessionStorage.getItem('token');
-                }else{
-                    sessionStorage.clear()
-                    store.state.token = null
-                    store.state.username = null
-                    store.commit("setConnectionStatus",false)
-                    router.push("/")
                 }
             }
         }

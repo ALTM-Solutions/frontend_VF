@@ -41,9 +41,32 @@
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <fieldset class="fr-fieldset" id="checkboxes-inline" aria-labelledby="checkboxes-inline-legend checkboxes-inline-messages">
+                                            <legend class="fr-fieldset__legend--regular fr-fieldset__legend" id="checkboxes-inline-legend">
+                                                Sélectionner les collections
+                                            </legend>
+                                            <div v-for="(item, index) in collections" :key="index" class="fr-fieldset__element fr-fieldset__element--inline">
+                                                <div class="fr-checkbox-group">
+                                                    <input :name="'checkbox-' + index" type="checkbox"  :aria-describedby="'checkboxes-inline-' + index + '-messages'" v-model="collections_selected" :value="item.id">
+                                                    <input :name="'checkboxes-inline-' + index" :id="'checkboxes-inline-'+index" type="checkbox" :aria-describedby="'checkboxes-inline-' + index + '-messages'" v-model="collections_selected" :value="item.id">
+                                                    <label class="fr-label" :for="'checkboxes-inline-' + index" style="font-size: 0.8rem;">
+                                                        {{ item.nom }}
+                                                    </label>
+                                                </div>
+                                                <div class="fr-messages-group" :id="'checkboxes-inline-' + index + '-messages'" aria-live="assertive"></div>
+                                            </div>
+                                        </fieldset>
                                     </fieldset>
                                 </div>
                                 <div class="fr-fieldset__element">
+                                    <div class="fr-notice fr-notice--info">
+                                        <div class="fr-container">
+                                            <div class="fr-notice__body">
+                                                <p class="fr-notice__title">La ressouce passe une étape de validation par un administrateur et sera visible quand votre ressource sera validée</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <ul class="fr-btns-group">
                                         <li>
                                             <button class="fr-mt-2v fr-btn" @click="createRessource">
@@ -73,8 +96,9 @@
                 token: null,
                 text:null,
                 titre:null,
-                file:[]
-
+                file:[],
+                collections:[],
+                collections_selected:[]
             }
         },
         methods:{
@@ -91,6 +115,7 @@
                 }
                 form.append('texte', this.text)
                 form.append("nomRessource", this.titre)
+                form.append("listTypeParcours",this.collections_selected.join(","))
                 const options = {
                     method: 'POST',
                     headers: {
@@ -121,14 +146,23 @@
                 if(sessionStorage.getItem('token')){
                     store.state.token = sessionStorage.getItem('token');
                 }else{
-                    sessionStorage.clear()
-                    store.state.token = null
-                    store.state.email = null
-                    store.commit("setConnectionStatus",false)
                     router.push("/")
                 }
             }
             this.token = store.state.token
+            const options = {
+                method: 'GET'
+            };
+            fetch(this.api_path + this.public_type_parcours,options)
+            .then(res=>{
+               if(res.status == 200){
+                    return res.json()
+                }
+            }).then(data => {
+                this.collections = data
+            }).catch(err =>{
+                console.log(err)
+            })
         }
     }
 </script>

@@ -3,6 +3,10 @@
         <div class="fr-grid-row fr-grid-row--center">
             <h2 class="fr-callout__title">{{ this.ressource.nomRessource }}</h2>
         </div>
+        <p class="fr-text--sm" v-if="this.userConnect">Avancement actuel : {{ this.progressionActual }}%</p>
+        <p v-for="(item, index) in this.typeParcours" :key="index" class="fr-badge fr-badge--info fr-badge--no-icon">
+            {{ item.nom }}
+        </p>
         <div class="fr-grid-row">
             <div v-html="this.designedText"></div>
             <!-- <p>{{ this.ressource.text }}</p> -->
@@ -10,7 +14,7 @@
         <div class="fr-grid-row">
             <figure v-if="this.fileIsImage" class="fr-content-media fr-content-media--sm" role="group" :aria-label="this.nomRessource">
                 <div class="fr-content-media__img">
-                    <img class="fr-responsive-img fr-ratio-16x9" :src="this.ressource.pieceJointe.cheminPieceJointe" :alt="this.filename" />
+                    <img class="fr-responsive-img fr-ratio-16x9" :src="this.urlFile" :alt="this.filename" />
                 </div>
                 <figcaption class="fr-content-media__caption">{{ this.filename }}</figcaption>
             </figure>
@@ -19,10 +23,20 @@
             <p v-if="this.fileIsPresent && !this.fileIsImage">{{ this.filename }}</p>
         </div>
         <div class="fr-grid-row fr-grid-row--center">
-            <a v-if="this.fileIsPresent" :href="this.ressource.pieceJointe.cheminPieceJointe" class="fr-btn fr-btn--icon-left fr-icon-file-download-fill">Télécharger la ressource</a>
+            <a v-if="this.fileIsPresent" :href="this.urlFile" class="fr-btn fr-btn--icon-left fr-icon-file-download-fill">Télécharger la ressource</a>
         </div>
-            <br>    
-            <hr> 
+        <br>    
+        <hr> 
+        <div v-if="this.userConnect">
+            <button class="fr-btn fr-icon-star-fill fr-btn--icon-left fr-btn--tertiary-no-outline" title="mettre en favoris" v-if="this.favoris" @click="switchFavoris">Retirer des favoris</button>
+            <button class="fr-btn fr-icon-star-line fr-btn--icon-left fr-btn--tertiary-no-outline" title="mettre en favoris" v-if="!this.favoris" @click="switchFavoris">Mettre en favoris</button>
+
+            <button class="fr-btn fr-icon-checkbox-fill fr-btn--icon-left fr-btn--tertiary-no-outline" title="mettre de coté" v-if="this.misDeCote" @click="switchMisDeCote">Ne plus mettre de côté</button>
+            <button class="fr-btn fr-icon-checkbox-line fr-btn--icon-left fr-btn--tertiary-no-outline" title="mettre de coté" v-if="!this.misDeCote" @click="switchMisDeCote">mettre de côté</button>
+
+            <button class="fr-btn fr-icon-git-commit-line fr-btn--icon-left fr-btn--tertiary-no-outline" @click="this.showModal = true">Ajouter une progression</button>
+            <button class="fr-btn fr-icon-pencil-line fr-btn--icon-left fr-btn--tertiary-no-outline" v-if="this.itsMyRessource" @click="goToEditRessource">Edition de la ressource</button>
+        </div>
             <br>
             <div v-if="this.userConnect">
                 <div class="fr-grid-row fr-mb-3w fr-grid-row--center">
@@ -44,6 +58,42 @@
             </div>
 
         </div>
+
+        <div v-if="showModal" class="modal">
+            <div class="fr-modal__body modal-content">
+                <div class="fr-modal__header">
+                    <button class="fr-btn--close fr-btn" aria-controls="fr-modal-2" @click="this.closeModal()">Fermer</button>
+                </div>
+                <div class="fr-modal__content">
+                    <h1 id="fr-modal-2-title" class="fr-modal__title">
+                        <span class="fr-icon-arrow-right-line fr-icon--lg"></span>
+                        Indiquer votre pourcentage d'avancement sur cette ressource
+                    </h1>
+                    <div class="fr-range-group" id="range-2256-group">
+                        <label class="fr-label">
+                            Avancement : {{ this.percentage }}%
+                            <span class="fr-hint-text">valeur de 0 à 100%</span>
+                        </label>
+                        <div class="fr-range fr-range--step">
+                            <span class="fr-range__output">{{ this.percentage }}</span>
+                            <input id="range-2255" name="range-2255" type="range" aria-labelledby="range-2255-label" max="100" value="50" step="10" aria-describedby="range-2255-messages" v-model="percentage">
+                            <span class="fr-range__min" aria-hidden="true">0</span>
+                            <span class="fr-range__max" aria-hidden="true">100</span>
+                        </div>
+                        <div class="fr-messages-group" id="range-2255-messages" aria-live="polite">
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="fr-modal__footer">
+                    <div class="fr-btns-group fr-btns-group--right fr-btns-group--inline-reverse fr-btns-group--inline-lg fr-btns-group--icon-left">
+                        <button class="fr-btn fr-btn--icon-left fr-icon-checkbox-fill" @click="this.validePercentage">
+                            Valider ma progression
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     
 </template>
 <script>
@@ -61,8 +111,15 @@ import CommentaireView from '@/components/Commentaire.vue'
                 ressource: Object,
                 imagePath : "",
                 utilisateur:null,
+                utilisateurRessource:null,
                 text:null,
-                file:[]
+                file:[],
+                typeParcours:[],
+                favoris:false,
+                misDeCote:false,
+                progression:null,
+                showModal:false,
+                percentage:0
             }
         },
         computed:{
@@ -71,6 +128,31 @@ import CommentaireView from '@/components/Commentaire.vue'
                     return true
                 }else{
                     return false
+                }
+            },
+            itsMyRessource(){
+                if(this.utilisateurRessource != null){
+                    if(this.utilisateurRessource.id == store.state.id || store.state.role == "MODERATEUR" || store.state.role == "ADMIN" || store.state.role == "SUPER_ADMIN"){
+                        return true
+                    }else{
+                        return false
+                    }
+                }else{
+                    return false
+                }
+            },
+            percentageActual(){
+                if(this.percentage == null){
+                    return 0
+                }else{
+                    return this.percentage
+                }
+            },
+            progressionActual(){
+                if(this.progression == null){
+                    return 0
+                }else{
+                    return this.progression
                 }
             },
             fileIsImage(){
@@ -86,10 +168,12 @@ import CommentaireView from '@/components/Commentaire.vue'
                     return false
                 }
             },
+            urlFile(){
+                return this.api_path + this.get_file + "/" + this.ressource.pieceJointe.cheminPieceJointe
+            },
             filename(){
                 if(this.fileIsPresent){
-                    let segments = this.ressource.pieceJointe.cheminPieceJointe.split("/")
-                    return segments[segments.length - 1];
+                    return this.ressource.pieceJointe.nomOrigin
                 
                 }else{
                     return "No name..."
@@ -109,6 +193,95 @@ import CommentaireView from '@/components/Commentaire.vue'
 
         },
         methods:{
+            goToEditRessource(){
+                router.push("/edit-ressource/" + this.ressourceId)
+            },
+            closeModal() {
+                this.showModal = false;
+            },
+            switchMisDeCote(){
+                let options=null
+                if(!this.misDeCote){
+                    options = {
+                        method: 'POST',
+                        headers: {
+                            "Authorization": "Bearer " + store.state.token
+                        }
+                    };
+                }else{
+                    options = {
+                        method: 'DELETE',
+                        headers: {
+                            "Authorization": "Bearer " + store.state.token
+                        }
+                    };
+                }
+                
+                fetch(this.api_path + this.route_mis_de_cote + "?ressourceId=" + this.ressourceId, options)
+                .then(res=>{
+                    if(res.status == 401){
+                        router.push("/")
+                    }else if(res.status == 200){
+                        this.misDeCote = !this.misDeCote
+                    }
+                }).catch(err=>{
+                    console.log(err)
+                })
+                
+            },
+            validePercentage(){
+                let form = new FormData()
+                form.append("ressourceId", this.ressourceId)
+                form.append("progression", this.percentage)
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        "Authorization": "Bearer " + store.state.token
+                    },
+                    body:form
+                };
+                fetch(this.api_path + this.route_progression, options)
+                .then(res=>{
+                    if(res.status == 401){
+                        alert("not work")
+                    }else if(res.status == 200){
+                        this.progression = this.percentage
+                        this.closeModal()
+                    }
+                }).catch(err=>{
+                    console.log(err)
+                })
+            },
+            switchFavoris(){
+                let options=null
+                if(!this.favoris){
+                    options = {
+                        method: 'POST',
+                        headers: {
+                            "Authorization": "Bearer " + store.state.token
+                        }
+                    };
+                }else{
+                    options = {
+                        method: 'DELETE',
+                        headers: {
+                            "Authorization": "Bearer " + store.state.token
+                        }
+                    };
+                }
+                
+                fetch(this.api_path + this.route_favoris + "?ressourceId=" + this.ressourceId, options)
+                .then(res=>{
+                    if(res.status == 401){
+                        router.push("/")
+                    }else if(res.status == 200){
+                        this.favoris = !this.favoris
+                    }
+                }).catch(err=>{
+                    console.log(err)
+                })
+                
+            },
             handleFileUpload(event) {
                 this.file = event.target.files[0];
             },
@@ -157,11 +330,12 @@ import CommentaireView from '@/components/Commentaire.vue'
         },
         mounted(){
             // Récupérer les informations utilisateur
-            if(sessionStorage.getItem('token') && sessionStorage.getItem('email') && sessionStorage.getItem('role')){
+        
+            if(sessionStorage.getItem('token') &&  sessionStorage.getItem('role') && sessionStorage.getItem('id') ){
                 store.commit("setConnectionStatus", true)
                 store.state.token = sessionStorage.getItem('token');
-                store.state.email = sessionStorage.getItem('email');
                 store.state.role = sessionStorage.getItem('role');
+                store.state.id = sessionStorage.getItem('id');
             }else{
                 var allCookies = document.cookie;
 
@@ -180,11 +354,11 @@ import CommentaireView from '@/components/Commentaire.vue'
                         store.state.token = cookieValue
                         sessionStorage.setItem("token",cookieValue)
                     }
-                    if(cookieName === "email"){
-                        store.state.email = cookieValue
-                        sessionStorage.setItem("email",cookieValue)
+                    if(cookieName === "id"){
+                        store.state.id = cookieValue
+                        sessionStorage.setItem("id",cookieValue)
                     }
-                    if(cookieName === "email"){
+                    if(cookieName === "role"){
                         store.state.role = cookieValue
                         sessionStorage.setItem("role",cookieValue)
                     }
@@ -204,15 +378,7 @@ import CommentaireView from '@/components/Commentaire.vue'
                 };
                 fetch(this.api_path + this.route_utilisateur, options)
                 .then(res=>{
-                    if(res.status == 401){
-                        sessionStorage.clear()
-                        store.state.token = null
-                        store.state.username = null
-                        store.commit("setConnectionStatus",false)
-                        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-                        document.cookie = "email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-                        router.push("/")
-                    }else if(res.status == 200){
+                    if(res.status == 200){
                         return res.json()
                     }
                 })
@@ -221,36 +387,47 @@ import CommentaireView from '@/components/Commentaire.vue'
                 }).catch(err=>{
                     console.log(err)
                 })
+
+
+                fetch(this.api_path + this.route_ressources + "/" +this.$route.params.id, options)
+                .then(res=>{
+                    if(res.status == 200){
+                        return res.json()
+                    }
+                }).then(data => {
+                    this.ressource = data.ressources
+                    this.typeParcours = data.typeParcours
+                    this.utilisateurRessource = data.ressources.utilisateur
+                    this.favoris = data.favoris
+                    this.misDeCote = data.mis_de_cote
+                    this.progression = data.progression
+                    if(data.progression == null){
+                        this.percentage = 0
+                        this.progression = 0
+                    }else{
+                        this.percentage = data.progression.status
+                        this.progression = data.progression.status
+                    }
+
+                }).catch(err =>{
+                    console.log(err)
+                })
+
+            }else{
+                fetch(this.api_path + this.get_all_ressources + "/" +this.$route.params.id, {method: 'GET'})
+                .then(res=>{
+                    if(res.status == 200){
+                        return res.json()
+                    }
+                }).then(data => {
+                    this.ressource = data.ressources
+                    this.typeParcours = data.typeParcours
+                    this.utilisateurRessource = data.ressources.utilisateur
+                }).catch(err =>{
+                    console.log(err)
+                })
             }
-            fetch(this.api_path + this.get_all_ressources + "/" +this.$route.params.id, {method: 'GET'})
-            .then(res=>{
-                if(res.status == 200){
-                    return res.json()
-                }
-            }).then(data => {
-                this.ressource = data
-                // if(this.ressource.pieceJointe != null && this.ressource.pieceJointe != "null"){
-                //     let segments = this.ressource.pieceJointe.cheminPieceJointe.split(".")
-                //     let extension = segments[segments.length - 1];
-                //     if(extension == "webp" || extension == "jpg" || extension == "png" || extension == "jpeg" || extension == "gif"){
-                //         fetch(this.ressource.pieceJointe.cheminPieceJointe, options)
-                //         .then(res =>{
-                //             if(res.status == 200){
-                //                 return res.blob();
-                //             }else{
-                //                 this.imagePath = ""
-                //             }
-                //         })
-                //         .then(blob =>{
-                //             this.imagePath = URL.createObjectURL(blob)
-                //         }).catch(err=>{
-                //             console.log(err)
-                //         })
-                //     }
-                // }
-            }).catch(err =>{
-                console.log(err)
-            })
+            
         }
     }
 </script>
